@@ -33,6 +33,9 @@ string RDFParserSerd::getString(const SerdNode *term) {
 string RDFParserSerd::getStringObject(const SerdNode *term,
                                       const SerdNode *dataType,
                                       const SerdNode *lang) {
+  if(term==NULL){
+      return "\"\"";
+  }
 	if(term->type!=SERD_LITERAL) {
 		return getString(term);
 	}
@@ -49,7 +52,7 @@ string RDFParserSerd::getStringObject(const SerdNode *term,
 		out.push_back('@');
 		out.append((const char *)lang->buf, lang->n_bytes);
 	}
-	if(dataType!=NULL) {
+	if(dataType!=NULL){
 		out.append("^^<");
 		out.append(getString(dataType));
 		out.push_back('>');
@@ -59,10 +62,10 @@ string RDFParserSerd::getStringObject(const SerdNode *term,
 }
 
 SerdStatus hdtserd_on_error(void *handle, const SerdError *error) {
-	fprintf(stderr, "error: %s:%u:%u: ",
+	fprintf(stdout, "error: %s:%u:%u: ",
 	        error->filename, error->line, error->col);
-	vfprintf(stderr, error->fmt, *error->args);
-	throw std::runtime_error("Error parsing input.");
+	vfprintf(stdout, error->fmt, *error->args);
+	//throw std::runtime_error("Error parsing input.");
 	return error->status;
 }
 
@@ -184,6 +187,7 @@ void RDFParserSerd::doParse(const char *fileName, const char *baseUri, RDFNotati
 		NULL);
 
 	serd_reader_set_error_sink(reader, hdtserd_on_error, NULL);
+	serd_reader_set_strict(reader, false);
 
 	const uint8_t* input=serd_uri_to_path((const uint8_t *)fileName);
 
